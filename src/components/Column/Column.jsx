@@ -8,10 +8,16 @@ function Column({ title, cards }) {
         <p>{title}</p>
       </div>
       <div className="cards">
-        {cards.map((card, index) => (
+        {cards.map((card) => (
           <Card
-            key={index}
-            theme={card.theme}
+            key={card.id}
+            theme={
+              card.topic === "Web Design"
+                ? "_orange"
+                : card.topic === "Research"
+                ? "_green"
+                : "_purple"
+            }
             title={card.title}
             date={card.date}
           />
