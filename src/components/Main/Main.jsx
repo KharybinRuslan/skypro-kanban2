@@ -1,7 +1,12 @@
-import "./Main.css";
 import Column from "../Column/Column";
 import { useState, useEffect } from "react";
 import { cardList } from "../../data";
+import {
+  MainContainer,
+  MainBlock,
+  MainContent,
+  LoadingContainer,
+} from "./Main.styled";
 
 function Main() {
   const [isLoading, setIsLoading] = useState(true);
@@ -34,30 +39,30 @@ function Main() {
 
   if (isLoading) {
     return (
-      <main className="main">
+      <MainContainer>
         <div className="container">
-          <div className="main__block">
-            <div className="loading">
+          <MainBlock>
+            <LoadingContainer>
               <p>Данные загружаются</p>
-            </div>
-          </div>
+            </LoadingContainer>
+          </MainBlock>
         </div>
-      </main>
+      </MainContainer>
     );
   }
 
   return (
-    <main className="main">
+    <MainContainer>
       <div className="container">
-        <div className="main__block">
-          <div className="main__content">
+        <MainBlock>
+          <MainContent>
             {columns.map((column, index) => (
               <Column key={index} title={column.title} cards={column.cards} />
             ))}
-          </div>
-        </div>
+          </MainContent>
+        </MainBlock>
       </div>
-    </main>
+    </MainContainer>
   );
 }
 

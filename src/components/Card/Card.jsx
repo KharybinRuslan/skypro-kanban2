@@ -1,32 +1,41 @@
-import "./Card.css";
+import {
+  CardItem,
+  CardContainer,
+  CardGroup,
+  CardTheme,
+  CardButton,
+  CardContent,
+  CardTitle,
+  CardDate,
+} from "./Card.styled";
 
 function Card({ theme, title, date }) {
   return (
-    <div className="cards__item">
-      <div className="cards__card card">
-        <div className="card__group">
-          <div className={`card__theme ${theme}`}>
-            <p className={theme}>
+    <CardItem>
+      <CardContainer>
+        <CardGroup>
+          <CardTheme $theme={theme}>
+            <p>
               {theme === "_orange"
                 ? "Web Design"
                 : theme === "_green"
                 ? "Research"
                 : "Copywriting"}
             </p>
-          </div>
+          </CardTheme>
           <a href="#popBrowse" target="_self">
-            <div className="card__btn">
+            <CardButton>
               <div></div>
               <div></div>
               <div></div>
-            </div>
+            </CardButton>
           </a>
-        </div>
-        <div className="card__content">
+        </CardGroup>
+        <CardContent>
           <a href="" target="_blank">
-            <h3 className="card__title">{title}</h3>
+            <CardTitle>{title}</CardTitle>
           </a>
-          <div className="card__date">
+          <CardDate>
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="13"
@@ -56,10 +65,10 @@ function Card({ theme, title, date }) {
               </defs>
             </svg>
             <p>{date}</p>
-          </div>
-        </div>
-      </div>
-    </div>
+          </CardDate>
+        </CardContent>
+      </CardContainer>
+    </CardItem>
   );
 }
 

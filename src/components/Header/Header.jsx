@@ -1,5 +1,17 @@
-import "./Header.css";
 import { useState } from "react";
+import {
+  HeaderContainer,
+  HeaderBlock,
+  Logo,
+  Navigation,
+  CreateButton,
+  UserLink,
+  UserMenu,
+  UserName,
+  UserEmail,
+  ThemeSection,
+  LogoutButton,
+} from "./Header.styled";
 
 function Header() {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
@@ -7,52 +19,46 @@ function Header() {
   const handleUserClick = () => {
     setIsUserMenuOpen(!isUserMenuOpen);
   };
+
   return (
-    <header className="header">
+    <HeaderContainer>
       <div className="container">
-        <div className="header__block">
-          <div className="header__logo _show _light">
+        <HeaderBlock>
+          <Logo className="_show _light">
             <a href="" target="_self">
               <img src="/images/logo.png" alt="logo" />
             </a>
-          </div>
-          <div className="header__logo _dark">
+          </Logo>
+          <Logo className="_dark">
             <a href="" target="_self">
               <img src="/images/logo_dark.png" alt="logo" />
             </a>
-          </div>
-          <nav className="header__nav">
-            <button className="header__btn-main-new _hover01" id="btnMainNew">
+          </Logo>
+          <Navigation>
+            <CreateButton id="btnMainNew">
               <a href="#popNewCard">Создать новую задачу</a>
-            </button>
-            <a
-              href="#user-set-target"
-              className="header__user _hover02"
-              onClick={handleUserClick}
-            >
+            </CreateButton>
+            <UserLink href="#user-set-target" onClick={handleUserClick}>
               Ivan Ivanov
-            </a>
-            <div
-              className={`header__pop-user-set pop-user-set ${
-                isUserMenuOpen ? "show" : ""
-              }`}
+            </UserLink>
+            <UserMenu
+              className={isUserMenuOpen ? "show" : ""}
               id="user-set-target"
             >
-              {/* <a href="">x</a> */}
-              <p className="pop-user-set__name">Ivan Ivanov</p>
-              <p className="pop-user-set__mail">ivan.ivanov@gmail.com</p>
-              <div className="pop-user-set__theme">
+              <UserName>Ivan Ivanov</UserName>
+              <UserEmail>ivan.ivanov@gmail.com</UserEmail>
+              <ThemeSection>
                 <p>Темная тема</p>
                 <input type="checkbox" className="checkbox" name="checkbox" />
-              </div>
-              <button type="button" className="_hover03">
+              </ThemeSection>
+              <LogoutButton type="button">
                 <a href="#popExit">Выйти</a>
-              </button>
-            </div>
-          </nav>
-        </div>
+              </LogoutButton>
+            </UserMenu>
+          </Navigation>
+        </HeaderBlock>
       </div>
-    </header>
+    </HeaderContainer>
   );
 }
 
