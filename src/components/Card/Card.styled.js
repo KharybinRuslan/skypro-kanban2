@@ -96,6 +96,16 @@ export const CardButton = styled.div`
   align-items: center;
   justify-content: space-around;
   padding: 2px;
+  cursor: pointer;
+
+  a {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    width: 100%;
+    height: 100%;
+    text-decoration: none;
+  }
 
   div {
     width: 4px;
@@ -119,6 +129,16 @@ export const CardTitle = styled.h3`
   line-height: 18px;
   color: ${colors.black};
   margin-bottom: 10px;
+
+  a {
+    color: ${colors.black};
+    text-decoration: none;
+    cursor: pointer;
+
+    &:hover {
+      color: ${colors.primary};
+    }
+  }
 `;
 
 export const CardDate = styled.div`
