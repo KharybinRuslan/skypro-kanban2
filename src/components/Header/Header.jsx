@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import {
   HeaderContainer,
   HeaderBlock,
@@ -25,18 +26,18 @@ function Header() {
       <div className="container">
         <HeaderBlock>
           <Logo className="_show _light">
-            <a href="" target="_self">
+            <Link to="/">
               <img src="/images/logo.png" alt="logo" />
-            </a>
+            </Link>
           </Logo>
           <Logo className="_dark">
-            <a href="" target="_self">
+            <Link to="/">
               <img src="/images/logo_dark.png" alt="logo" />
-            </a>
+            </Link>
           </Logo>
           <Navigation>
             <CreateButton id="btnMainNew">
-              <a href="#popNewCard">Создать новую задачу</a>
+              <Link to="/new-card">Создать новую задачу</Link>
             </CreateButton>
             <UserLink href="#user-set-target" onClick={handleUserClick}>
               Ivan Ivanov
@@ -52,7 +53,7 @@ function Header() {
                 <input type="checkbox" className="checkbox" name="checkbox" />
               </ThemeSection>
               <LogoutButton type="button">
-                <a href="#popExit">Выйти</a>
+                <Link to="/exit">Выйти</Link>
               </LogoutButton>
             </UserMenu>
           </Navigation>
