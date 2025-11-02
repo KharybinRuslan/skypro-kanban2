@@ -1,22 +1,15 @@
 import "./App.css";
-import Header from "./components/Header/Header";
-import Main from "./components/Main/Main";
-import PopNewCard from "./components/popups/PopNewCard/PopNewCard";
-import PopBrowse from "./components/popups/PopBrowse/PopBrowse";
-import PopUser from "./components/popups/PopUser/PopUser";
+import { useState } from "react";
+import { BrowserRouter } from "react-router-dom";
+import AppRoutes from "./components/AppRoutes";
 
 function App() {
-  return (
-    <div className="wrapper">
-      {/* pop-up start*/}
-      <PopUser />
-      <PopNewCard />
-      <PopBrowse />
-      {/* pop-up end*/}
+  const [isAuth, setIsAuth] = useState(false);
 
-      <Header />
-      <Main />
-    </div>
+  return (
+    <BrowserRouter>
+      <AppRoutes isAuth={isAuth} setIsAuth={setIsAuth} />
+    </BrowserRouter>
   );
 }
 

@@ -11,6 +11,7 @@ function Column({ title, cards }) {
         {cards.map((card) => (
           <Card
             key={card.id}
+            id={card.id}
             theme={
               card.topic === "Web Design"
                 ? "_orange"

@@ -20,6 +20,11 @@ export const HeaderBlock = styled.div`
 `;
 
 export const Logo = styled.div`
+  a {
+    display: inline-block;
+    text-decoration: none;
+  }
+
   img {
     width: 85px;
   }
@@ -54,6 +59,11 @@ export const CreateButton = styled.button`
   a {
     color: ${colors.white};
     text-decoration: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
   }
 
   @media screen and (max-width: 495px) {
@@ -203,5 +213,10 @@ export const LogoutButton = styled.button`
   a {
     color: inherit;
     text-decoration: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
   }
 `;
