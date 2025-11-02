@@ -1,21 +1,17 @@
 import "./App.css";
-import { useState, useEffect } from "react";
 import { BrowserRouter } from "react-router-dom";
+import { AuthProvider } from "./contexts/AuthContext";
+import { TaskProvider } from "./contexts/TaskContext";
 import AppRoutes from "./components/AppRoutes";
 
 function App() {
-  const [isAuth, setIsAuth] = useState(false);
-
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      setIsAuth(true);
-    }
-  }, []);
-
   return (
     <BrowserRouter>
-      <AppRoutes isAuth={isAuth} setIsAuth={setIsAuth} />
+      <AuthProvider>
+        <TaskProvider>
+          <AppRoutes />
+        </TaskProvider>
+      </AuthProvider>
     </BrowserRouter>
   );
 }

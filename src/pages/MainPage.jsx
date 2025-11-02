@@ -1,7 +1,6 @@
 import Column from "../components/Column/Column";
 import Header from "../components/Header/Header";
-import { useState, useEffect } from "react";
-import { getTasks } from "../services/kanbanApi";
+import { useTasks } from "../hooks/useTasks";
 import {
   Wrapper,
   MainContainer,
@@ -11,60 +10,8 @@ import {
 } from "./MainPage.styled";
 
 function MainPage() {
-  const [isLoading, setIsLoading] = useState(true);
-  const [cards, setCards] = useState([]);
-  const [error, setError] = useState("");
-
-  useEffect(() => {
-    loadTasks();
-  }, []);
-
-  const loadTasks = async () => {
-    setIsLoading(true);
-    setError("");
-    try {
-      const tasks = await getTasks();
-      
-      // Проверяем, что tasks существует и является массивом
-      if (!tasks || !Array.isArray(tasks)) {
-        setCards([]);
-        return;
-      }
-      
-      // Преобразуем формат задач из API в формат для компонентов
-      const formattedCards = tasks.map((task) => {
-        const date = new Date(task.date);
-        const formattedDate = `${String(date.getDate()).padStart(2, "0")}.${String(date.getMonth() + 1).padStart(2, "0")}.${String(date.getFullYear()).slice(-2)}`;
-        
-        // Нормализуем статус для совместимости
-        let normalizedStatus = task.status || "БЕЗ СТАТУСА";
-        const statusMap = {
-          "Без статуса": "БЕЗ СТАТУСА",
-          "Нужно сделать": "НУЖНО СДЕЛАТЬ",
-          "В работе": "В РАБОТЕ",
-          "Тестирование": "ТЕСТИРОВАНИЕ",
-          "Готово": "ГОТОВО",
-        };
-        normalizedStatus = statusMap[normalizedStatus] || normalizedStatus;
-
-        return {
-          id: task._id,
-          title: task.title,
-          topic: task.topic,
-          date: formattedDate,
-          status: normalizedStatus,
-          description: task.description || "",
-        };
-      });
-      setCards(formattedCards);
-      console.log("Загружено задач:", formattedCards.length);
-    } catch (err) {
-      console.error("Ошибка загрузки задач:", err);
-      setError(err.message || "Ошибка загрузки задач");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const { tasks, isLoading, error } = useTasks();
+  const cards = tasks;
 
   const groupedCards = {
     "БЕЗ СТАТУСА": cards.filter((card) => card.status === "БЕЗ СТАТУСА"),

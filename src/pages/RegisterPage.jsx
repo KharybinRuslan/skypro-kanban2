@@ -13,9 +13,9 @@ import {
   LinkText,
   ErrorMessage,
 } from "./RegisterPage.styled";
-import { registerUser } from "../services/userApi";
+import { useAuth } from "../hooks/useAuth";
 
-function RegisterPage({ setIsAuth }) {
+function RegisterPage() {
   const [name, setName] = useState("");
   const [login, setLogin] = useState("");
   const [password, setPassword] = useState("");
@@ -27,6 +27,7 @@ function RegisterPage({ setIsAuth }) {
   });
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const { register } = useAuth();
 
   const validateForm = () => {
     const errors = {
@@ -35,10 +36,12 @@ function RegisterPage({ setIsAuth }) {
       password: !password.trim(),
     };
     setFieldErrors(errors);
-    
+
     const hasErrors = errors.name || errors.login || errors.password;
     if (hasErrors) {
-      setError("Введенные вами данные не корректны. Чтобы завершить регистрацию, заполните все поля в форме.");
+      setError(
+        "Введенные вами данные не корректны. Чтобы завершить регистрацию, заполните все поля в форме."
+      );
       return false;
     }
     return true;
@@ -47,23 +50,20 @@ function RegisterPage({ setIsAuth }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
-    
+
     if (!validateForm()) {
       return;
     }
 
     setIsLoading(true);
 
-    try {
-      const user = await registerUser(login, name, password);
-      localStorage.setItem("token", user.token);
-      setIsAuth(true);
+    const result = await register(login, name, password);
+    if (result.success) {
       navigate("/");
-    } catch (err) {
-      setError(err.message || "Ошибка при регистрации");
-    } finally {
-      setIsLoading(false);
+    } else {
+      setError(result.error || "Ошибка при регистрации");
     }
+    setIsLoading(false);
   };
 
   const isFormValid = name.trim() && login.trim() && password.trim();
@@ -120,7 +120,11 @@ function RegisterPage({ setIsAuth }) {
                 $hasError={fieldErrors.password}
               />
               {error && <ErrorMessage>{error}</ErrorMessage>}
-              <Button type="submit" disabled={isLoading || !isFormValid} $disabled={isLoading || !isFormValid}>
+              <Button
+                type="submit"
+                disabled={isLoading || !isFormValid}
+                $disabled={isLoading || !isFormValid}
+              >
                 {isLoading ? "Регистрация..." : "Зарегистрироваться"}
               </Button>
               <FormGroup>

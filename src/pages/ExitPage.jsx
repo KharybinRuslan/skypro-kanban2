@@ -10,13 +10,14 @@ import {
   ButtonYes,
   ButtonNo,
 } from "./ExitPage.styled";
+import { useAuth } from "../hooks/useAuth";
 
-function ExitPage({ setIsAuth }) {
+function ExitPage() {
   const navigate = useNavigate();
+  const { logout } = useAuth();
 
   const handleExit = () => {
-    localStorage.removeItem("token");
-    setIsAuth(false);
+    logout();
     navigate("/login");
   };
 

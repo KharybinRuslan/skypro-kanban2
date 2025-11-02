@@ -1,4 +1,5 @@
 import { Routes, Route, Navigate } from "react-router-dom";
+import { useAuth } from "../hooks/useAuth";
 import LoginPage from "../pages/LoginPage";
 import RegisterPage from "../pages/RegisterPage";
 import MainPage from "../pages/MainPage";
@@ -7,37 +8,37 @@ import NewCardPage from "../pages/NewCardPage";
 import ExitPage from "../pages/ExitPage";
 import NotFoundPage from "../pages/NotFoundPage";
 
-function ProtectedRoute({ children, isAuth }) {
+function ProtectedRoute({ children }) {
+  const { isAuth, isLoading } = useAuth();
+
+  if (isLoading) {
+    return null;
+  }
+
   return isAuth ? children : <Navigate to="/login" replace />;
 }
 
-function AppRoutes({ isAuth, setIsAuth }) {
+function AppRoutes() {
+  const { isAuth, isLoading } = useAuth();
+
+  if (isLoading) {
+    return null;
+  }
+
   return (
     <Routes>
       <Route
         path="/login"
-        element={
-          isAuth ? (
-            <Navigate to="/" replace />
-          ) : (
-            <LoginPage setIsAuth={setIsAuth} />
-          )
-        }
+        element={isAuth ? <Navigate to="/" replace /> : <LoginPage />}
       />
       <Route
         path="/register"
-        element={
-          isAuth ? (
-            <Navigate to="/" replace />
-          ) : (
-            <RegisterPage setIsAuth={setIsAuth} />
-          )
-        }
+        element={isAuth ? <Navigate to="/" replace /> : <RegisterPage />}
       />
       <Route
         path="/"
         element={
-          <ProtectedRoute isAuth={isAuth}>
+          <ProtectedRoute>
             <MainPage />
           </ProtectedRoute>
         }
@@ -45,7 +46,7 @@ function AppRoutes({ isAuth, setIsAuth }) {
       <Route
         path="/card/:id"
         element={
-          <ProtectedRoute isAuth={isAuth}>
+          <ProtectedRoute>
             <CardPage />
           </ProtectedRoute>
         }
@@ -53,7 +54,7 @@ function AppRoutes({ isAuth, setIsAuth }) {
       <Route
         path="/new-card"
         element={
-          <ProtectedRoute isAuth={isAuth}>
+          <ProtectedRoute>
             <NewCardPage />
           </ProtectedRoute>
         }
@@ -61,8 +62,8 @@ function AppRoutes({ isAuth, setIsAuth }) {
       <Route
         path="/exit"
         element={
-          <ProtectedRoute isAuth={isAuth}>
-            <ExitPage setIsAuth={setIsAuth} />
+          <ProtectedRoute>
+            <ExitPage />
           </ProtectedRoute>
         }
       />
