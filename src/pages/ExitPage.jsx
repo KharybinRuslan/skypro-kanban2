@@ -15,6 +15,7 @@ function ExitPage({ setIsAuth }) {
   const navigate = useNavigate();
 
   const handleExit = () => {
+    localStorage.removeItem("token");
     setIsAuth(false);
     navigate("/login");
   };

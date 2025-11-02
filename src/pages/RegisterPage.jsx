@@ -11,21 +11,62 @@ import {
   Button,
   FormGroup,
   LinkText,
+  ErrorMessage,
 } from "./RegisterPage.styled";
+import { registerUser } from "../services/userApi";
 
 function RegisterPage({ setIsAuth }) {
   const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
+  const [login, setLogin] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState({
+    name: false,
+    login: false,
+    password: false,
+  });
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const validateForm = () => {
+    const errors = {
+      name: !name.trim(),
+      login: !login.trim(),
+      password: !password.trim(),
+    };
+    setFieldErrors(errors);
+    
+    const hasErrors = errors.name || errors.login || errors.password;
+    if (hasErrors) {
+      setError("Введенные вами данные не корректны. Чтобы завершить регистрацию, заполните все поля в форме.");
+      return false;
+    }
+    return true;
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (name && email && password) {
+    setError("");
+    
+    if (!validateForm()) {
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const user = await registerUser(login, name, password);
+      localStorage.setItem("token", user.token);
       setIsAuth(true);
       navigate("/");
+    } catch (err) {
+      setError(err.message || "Ошибка при регистрации");
+    } finally {
+      setIsLoading(false);
     }
   };
+
+  const isFormValid = name.trim() && login.trim() && password.trim();
 
   return (
     <Wrapper>
@@ -41,23 +82,47 @@ function RegisterPage({ setIsAuth }) {
                 name="first-name"
                 placeholder="Имя"
                 value={name}
-                onChange={(e) => setName(e.target.value)}
+                onChange={(e) => {
+                  setName(e.target.value);
+                  if (fieldErrors.name && e.target.value.trim()) {
+                    setFieldErrors({ ...fieldErrors, name: false });
+                  }
+                }}
+                disabled={isLoading}
+                $hasError={fieldErrors.name}
               />
               <Input
                 type="text"
                 name="login"
                 placeholder="Эл. почта"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                value={login}
+                onChange={(e) => {
+                  setLogin(e.target.value);
+                  if (fieldErrors.login && e.target.value.trim()) {
+                    setFieldErrors({ ...fieldErrors, login: false });
+                  }
+                }}
+                disabled={isLoading}
+                $hasError={fieldErrors.login}
               />
               <Input
                 type="password"
                 name="password"
                 placeholder="Пароль"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  if (fieldErrors.password && e.target.value.trim()) {
+                    setFieldErrors({ ...fieldErrors, password: false });
+                  }
+                }}
+                disabled={isLoading}
+                $hasError={fieldErrors.password}
               />
-              <Button type="submit">Зарегистрироваться</Button>
+              {error && <ErrorMessage>{error}</ErrorMessage>}
+              <Button type="submit" disabled={isLoading || !isFormValid} $disabled={isLoading || !isFormValid}>
+                {isLoading ? "Регистрация..." : "Зарегистрироваться"}
+              </Button>
               <FormGroup>
                 <p>
                   Уже есть аккаунт?{" "}

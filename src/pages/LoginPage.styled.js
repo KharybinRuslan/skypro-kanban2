@@ -71,7 +71,7 @@ export const Input = styled.input`
   width: 100%;
   min-width: 100%;
   border-radius: 8px;
-  border: 0.7px solid ${colors.borderGray};
+  border: 0.7px solid ${(props) => (props.$hasError ? "#F84D4D" : colors.borderGray)};
   outline: none;
   padding: 10px 8px;
   margin-bottom: 7px;
@@ -99,7 +99,7 @@ export const Input = styled.input`
 export const Button = styled.button`
   width: 100%;
   height: 30px;
-  background-color: ${colors.primary};
+  background-color: ${(props) => (props.$disabled ? "#94A6BE" : colors.primary)};
   border-radius: 4px;
   margin-top: 20px;
   margin-bottom: 20px;
@@ -113,11 +113,11 @@ export const Button = styled.button`
   font-weight: 500;
   letter-spacing: -0.14px;
   color: ${colors.white};
-  cursor: pointer;
+  cursor: ${(props) => (props.$disabled ? "not-allowed" : "pointer")};
   transition: background-color 0.3s ease;
 
   &:hover {
-    background-color: ${colors.primaryHover};
+    background-color: ${(props) => (props.$disabled ? "#94A6BE" : colors.primaryHover)};
   }
 
   @media screen and (max-width: 375px) {
@@ -149,4 +149,14 @@ export const LinkText = styled.span`
   &:hover {
     color: ${colors.primary};
   }
+`;
+
+export const ErrorMessage = styled.div`
+  color: #F84D4D;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 150%;
+  letter-spacing: -0.14px;
+  margin-top: 10px;
+  text-align: center;
 `;
