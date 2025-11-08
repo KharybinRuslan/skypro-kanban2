@@ -12,6 +12,7 @@ function PopNewCard() {
   const [description, setDescription] = useState("");
   const [topic, setTopic] = useState("Research");
   const [status, setStatus] = useState("Без статуса");
+  const [date, setDate] = useState(new Date().toISOString());
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -30,7 +31,7 @@ function PopNewCard() {
       return;
     }
     setIsSubmitting(true);
-    const result = await addTask({ title, topic, status, description });
+    const result = await addTask({ title, topic, status, description, date });
     setIsSubmitting(false);
     if (result.success) {
       navigate("/");
@@ -83,7 +84,7 @@ function PopNewCard() {
                   ></textarea>
                 </div>
               </form>
-              <Calendar />
+              <Calendar onDateChange={setDate} selectedDate={date} />
             </div>
             <div className="pop-new-card__categories categories">
               <p className="categories__p subttl">Категория</p>
@@ -94,7 +95,9 @@ function PopNewCard() {
                   }`}
                   onClick={() => setTopic("Web Design")}
                 >
-                  <p className="_orange">Web Design</p>
+                  <p className="_orange" style={{ cursor: "pointer" }}>
+                    Web Design
+                  </p>
                 </div>
                 <div
                   className={`categories__theme _green ${
@@ -102,7 +105,9 @@ function PopNewCard() {
                   }`}
                   onClick={() => setTopic("Research")}
                 >
-                  <p className="_green">Research</p>
+                  <p className="_green" style={{ cursor: "pointer" }}>
+                    Research
+                  </p>
                 </div>
                 <div
                   className={`categories__theme _purple ${
@@ -110,7 +115,9 @@ function PopNewCard() {
                   }`}
                   onClick={() => setTopic("Copywriting")}
                 >
-                  <p className="_purple">Copywriting</p>
+                  <p className="_purple" style={{ cursor: "pointer" }}>
+                    Copywriting
+                  </p>
                 </div>
               </div>
             </div>

@@ -13,6 +13,7 @@ function PopBrowse({ id }) {
   const [description, setDescription] = useState("");
   const [topic, setTopic] = useState("Research");
   const [status, setStatus] = useState("Без статуса");
+  const [date, setDate] = useState(new Date().toISOString());
   const [isEdit, setIsEdit] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -29,6 +30,7 @@ function PopBrowse({ id }) {
         setDescription(task.description || "");
         setTopic(task.topic || "Research");
         setStatus(task.status || "Без статуса");
+        setDate(task.date || new Date().toISOString());
       } catch (e) {
         if (!isMounted) return;
         setError(e.message || "Ошибка загрузки задачи");
@@ -44,7 +46,7 @@ function PopBrowse({ id }) {
   const handleSave = async (e) => {
     e.preventDefault();
     setError("");
-    const result = await updateTaskById(id, { title, description, topic, status });
+    const result = await updateTaskById(id, { title, description, topic, status, date });
     if (result.success) {
       setIsEdit(false);
       navigate("/");
@@ -77,16 +79,58 @@ function PopBrowse({ id }) {
         <div className="pop-browse__block">
           <div className="pop-browse__content">
             <div className="pop-browse__top-block">
-              <h3 className="pop-browse__ttl">
-                {loading ? "Загрузка..." : title || "Без названия"}
-              </h3>
+              {isEdit ? (
+                <input
+                  type="text"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  style={{
+                    fontSize: "20px",
+                    fontWeight: 600,
+                    border: "1px solid #d4dbe5",
+                    borderRadius: "8px",
+                    padding: "8px",
+                    width: "100%",
+                    marginBottom: "10px",
+                  }}
+                  placeholder="Название задачи"
+                />
+              ) : (
+                <h3 className="pop-browse__ttl">
+                  {loading ? "Загрузка..." : title || "Без названия"}
+                </h3>
+              )}
               <div
-                className={`categories__theme theme-top _orange ${
-                  topic === "Web Design" ? "_active-category" : ""
+                className={`categories__theme theme-top ${
+                  topic === "Web Design"
+                    ? "_orange _active-category"
+                    : topic === "Research"
+                    ? "_green _active-category"
+                    : topic === "Copywriting"
+                    ? "_purple _active-category"
+                    : "_orange"
                 }`}
-                onClick={() => isEdit && setTopic("Web Design")}
+                onClick={() => {
+                  if (isEdit) {
+                    if (topic === "Web Design") setTopic("Research");
+                    else if (topic === "Research") setTopic("Copywriting");
+                    else setTopic("Web Design");
+                  }
+                }}
+                style={{ cursor: isEdit ? "pointer" : "default" }}
               >
-                <p className="_orange">Web Design</p>
+                <p
+                  className={
+                    topic === "Web Design"
+                      ? "_orange"
+                      : topic === "Research"
+                      ? "_green"
+                      : "_purple"
+                  }
+                  style={{ cursor: "pointer" }}
+                >
+                  {topic}
+                </p>
               </div>
             </div>
             <div className="pop-browse__status status">
@@ -94,41 +138,48 @@ function PopBrowse({ id }) {
               <div className="status__themes">
                 <div
                   className={`status__theme ${
-                    status === "Без статуса" ? "_gray" : "_hide"
+                    status === "Без статуса" ? "_gray" : ""
                   }`}
                   onClick={() => isEdit && setStatus("Без статуса")}
+                  style={{ cursor: isEdit ? "pointer" : "default" }}
                 >
                   <p>Без статуса</p>
                 </div>
                 <div
                   className={`status__theme ${
-                    status === "Нужно сделать" ? "_gray" : "_hide"
+                    status === "Нужно сделать" ? "_gray" : ""
                   }`}
                   onClick={() => isEdit && setStatus("Нужно сделать")}
+                  style={{ cursor: isEdit ? "pointer" : "default" }}
                 >
-                  <p className="_gray">Нужно сделать</p>
+                  <p className={status === "Нужно сделать" ? "_gray" : ""}>
+                    Нужно сделать
+                  </p>
                 </div>
                 <div
                   className={`status__theme ${
-                    status === "В работе" ? "_gray" : "_hide"
+                    status === "В работе" ? "_gray" : ""
                   }`}
                   onClick={() => isEdit && setStatus("В работе")}
+                  style={{ cursor: isEdit ? "pointer" : "default" }}
                 >
                   <p>В работе</p>
                 </div>
                 <div
                   className={`status__theme ${
-                    status === "Тестирование" ? "_gray" : "_hide"
+                    status === "Тестирование" ? "_gray" : ""
                   }`}
                   onClick={() => isEdit && setStatus("Тестирование")}
+                  style={{ cursor: isEdit ? "pointer" : "default" }}
                 >
                   <p>Тестирование</p>
                 </div>
                 <div
                   className={`status__theme ${
-                    status === "Готово" ? "_gray" : "_hide"
+                    status === "Готово" ? "_gray" : ""
                   }`}
                   onClick={() => isEdit && setStatus("Готово")}
+                  style={{ cursor: isEdit ? "pointer" : "default" }}
                 >
                   <p>Готово</p>
                 </div>
@@ -155,23 +206,52 @@ function PopBrowse({ id }) {
                   ></textarea>
                 </div>
               </form>
-              <Calendar />
+              <Calendar onDateChange={setDate} selectedDate={date} />
             </div>
             <div className="theme-down__categories theme-down">
               <p className="categories__p subttl">Категория</p>
-              <div
-                className={`categories__theme _orange ${
-                  topic === "Web Design" ? "_active-category" : ""
-                }`}
-                onClick={() => isEdit && setTopic("Web Design")}
-              >
-                <p className="_orange">Web Design</p>
+              <div className="categories__themes">
+                <div
+                  className={`categories__theme _orange ${
+                    topic === "Web Design" ? "_active-category" : ""
+                  }`}
+                  onClick={() => isEdit && setTopic("Web Design")}
+                  style={{ cursor: isEdit ? "pointer" : "default" }}
+                >
+                  <p className="_orange" style={{ cursor: "pointer" }}>
+                    Web Design
+                  </p>
+                </div>
+                <div
+                  className={`categories__theme _green ${
+                    topic === "Research" ? "_active-category" : ""
+                  }`}
+                  onClick={() => isEdit && setTopic("Research")}
+                  style={{ cursor: isEdit ? "pointer" : "default" }}
+                >
+                  <p className="_green" style={{ cursor: "pointer" }}>
+                    Research
+                  </p>
+                </div>
+                <div
+                  className={`categories__theme _purple ${
+                    topic === "Copywriting" ? "_active-category" : ""
+                  }`}
+                  onClick={() => isEdit && setTopic("Copywriting")}
+                  style={{ cursor: isEdit ? "pointer" : "default" }}
+                >
+                  <p className="_purple" style={{ cursor: "pointer" }}>
+                    Copywriting
+                  </p>
+                </div>
               </div>
             </div>
             {error ? (
               <p style={{ color: "red", marginBottom: 12 }}>{error}</p>
             ) : null}
-            <div className="pop-browse__btn-browse ">
+            <div
+              className={`pop-browse__btn-browse ${isEdit ? "_hide" : ""}`}
+            >
               <div className="btn-group">
                 <button
                   className="btn-browse__edit _btn-bor _hover03"
@@ -193,7 +273,7 @@ function PopBrowse({ id }) {
                 <a href="#">Закрыть</a>
               </button>
             </div>
-            <div className="pop-browse__btn-edit _hide">
+            <div className={`pop-browse__btn-edit ${!isEdit ? "_hide" : ""}`}>
               <div className="btn-group">
                 <button
                   className="btn-edit__edit _btn-bg _hover01"
