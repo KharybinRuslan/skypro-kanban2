@@ -1,32 +1,42 @@
-import "./Card.css";
+import { Link } from "react-router-dom";
+import {
+  CardItem,
+  CardContainer,
+  CardGroup,
+  CardTheme,
+  CardButton,
+  CardContent,
+  CardTitle,
+  CardDate,
+} from "./Card.styled";
 
-function Card({ theme, title, date }) {
+function Card({ theme, title, date, id }) {
   return (
-    <div className="cards__item">
-      <div className="cards__card card">
-        <div className="card__group">
-          <div className={`card__theme ${theme}`}>
-            <p className={theme}>
+    <CardItem>
+      <CardContainer>
+        <CardGroup>
+          <CardTheme $theme={theme}>
+            <p>
               {theme === "_orange"
                 ? "Web Design"
                 : theme === "_green"
                 ? "Research"
                 : "Copywriting"}
             </p>
-          </div>
-          <a href="#popBrowse" target="_self">
-            <div className="card__btn">
+          </CardTheme>
+          <Link to={`/card/${id}`}>
+            <CardButton>
               <div></div>
               <div></div>
               <div></div>
-            </div>
-          </a>
-        </div>
-        <div className="card__content">
-          <a href="" target="_blank">
-            <h3 className="card__title">{title}</h3>
-          </a>
-          <div className="card__date">
+            </CardButton>
+          </Link>
+        </CardGroup>
+        <CardContent>
+          <Link to={`/card/${id}`}>
+            <CardTitle>{title}</CardTitle>
+          </Link>
+          <CardDate>
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="13"
@@ -56,10 +66,10 @@ function Card({ theme, title, date }) {
               </defs>
             </svg>
             <p>{date}</p>
-          </div>
-        </div>
-      </div>
-    </div>
+          </CardDate>
+        </CardContent>
+      </CardContainer>
+    </CardItem>
   );
 }
 
