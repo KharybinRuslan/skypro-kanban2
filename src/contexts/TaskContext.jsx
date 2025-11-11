@@ -9,6 +9,78 @@ import { useAuth } from "../hooks/useAuth";
 
 const TaskContext = createContext(null);
 
+const STATUS_ALIASES = {
+  "без статуса": "БЕЗ СТАТУСА",
+  "Без статуса": "БЕЗ СТАТУСА",
+  "нужно сделать": "НУЖНО СДЕЛАТЬ",
+  "Нужно сделать": "НУЖНО СДЕЛАТЬ",
+  "в работе": "В РАБОТЕ",
+  "В работе": "В РАБОТЕ",
+  тестирование: "ТЕСТИРОВАНИЕ",
+  Тестирование: "ТЕСТИРОВАНИЕ",
+  готово: "ГОТОВО",
+  Готово: "ГОТОВО",
+};
+
+const DEFAULT_STATUS = "БЕЗ СТАТУСА";
+const DEFAULT_TOPIC = "Research";
+
+const sanitizeTaskPayload = (payload = {}) => {
+  const sanitized = { ...payload };
+
+  if (typeof sanitized.title === "string") {
+    sanitized.title = sanitized.title.trim();
+  }
+
+  if (typeof sanitized.description === "string") {
+    sanitized.description = sanitized.description.trim();
+  }
+
+  if (typeof sanitized.topic === "string") {
+    sanitized.topic = sanitized.topic.trim();
+  }
+
+  if (typeof sanitized.status === "string") {
+    sanitized.status = sanitized.status.trim();
+  }
+
+  if (typeof sanitized.date === "string" && sanitized.date.trim() === "") {
+    delete sanitized.date;
+  }
+
+  return sanitized;
+};
+
+const formatTaskDate = (rawDate) => {
+  if (!rawDate) {
+    return "Без срока";
+  }
+
+  const date = new Date(rawDate);
+  if (Number.isNaN(date.getTime())) {
+    return "Без срока";
+  }
+
+  const day = String(date.getDate()).padStart(2, "0");
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const year = String(date.getFullYear()).slice(-2);
+
+  return `${day}.${month}.${year}`;
+};
+
+const normalizeStatus = (status) => {
+  if (typeof status !== "string") {
+    return DEFAULT_STATUS;
+  }
+
+  const trimmedStatus = status.trim();
+  const normalized =
+    STATUS_ALIASES[trimmedStatus] ||
+    STATUS_ALIASES[trimmedStatus.toLowerCase()];
+
+  return normalized || trimmedStatus.toUpperCase();
+};
+
 export const TaskProvider = ({ children }) => {
   const [tasks, setTasks] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -18,42 +90,23 @@ export const TaskProvider = ({ children }) => {
   const loadTasks = useCallback(async () => {
     setIsLoading(true);
     setError("");
+
     try {
       const tasksData = await getTasks();
 
-      if (!tasksData || !Array.isArray(tasksData)) {
+      if (!Array.isArray(tasksData)) {
         setTasks([]);
         return;
       }
 
-      const formattedTasks = tasksData.map((task) => {
-        const date = new Date(task.date);
-        const formattedDate = `${String(date.getDate()).padStart(
-          2,
-          "0"
-        )}.${String(date.getMonth() + 1).padStart(2, "0")}.${String(
-          date.getFullYear()
-        ).slice(-2)}`;
-
-        let normalizedStatus = task.status || "БЕЗ СТАТУСА";
-        const statusMap = {
-          "Без статуса": "БЕЗ СТАТУСА",
-          "Нужно сделать": "НУЖНО СДЕЛАТЬ",
-          "В работе": "В РАБОТЕ",
-          Тестирование: "ТЕСТИРОВАНИЕ",
-          Готово: "ГОТОВО",
-        };
-        normalizedStatus = statusMap[normalizedStatus] || normalizedStatus;
-
-        return {
-          id: task._id,
-          title: task.title,
-          topic: task.topic,
-          date: formattedDate,
-          status: normalizedStatus,
-          description: task.description || "",
-        };
-      });
+      const formattedTasks = tasksData.map((task) => ({
+        id: task._id,
+        title: task.title?.trim() || "Без названия",
+        topic: task.topic || DEFAULT_TOPIC,
+        date: formatTaskDate(task.date),
+        status: normalizeStatus(task.status),
+        description: task.description?.trim() || "",
+      }));
 
       setTasks(formattedTasks);
     } catch (err) {
@@ -74,8 +127,8 @@ export const TaskProvider = ({ children }) => {
 
   const addTask = async (taskData) => {
     try {
-      await createTask(taskData);
-      await loadTasks(); // Перезагружаем список задач
+      await createTask(sanitizeTaskPayload(taskData));
+      await loadTasks();
       return { success: true };
     } catch (error) {
       return { success: false, error: error.message };
@@ -84,8 +137,8 @@ export const TaskProvider = ({ children }) => {
 
   const updateTaskById = async (id, taskData) => {
     try {
-      await updateTask(id, taskData);
-      await loadTasks(); // Перезагружаем список задач
+      await updateTask(id, sanitizeTaskPayload(taskData));
+      await loadTasks();
       return { success: true };
     } catch (error) {
       return { success: false, error: error.message };
@@ -95,7 +148,7 @@ export const TaskProvider = ({ children }) => {
   const removeTask = async (id) => {
     try {
       await deleteTask(id);
-      await loadTasks(); // Перезагружаем список задач
+      await loadTasks();
       return { success: true };
     } catch (error) {
       return { success: false, error: error.message };

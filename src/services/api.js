@@ -8,17 +8,23 @@ class Api {
   async request(url, options = {}) {
     const token = localStorage.getItem("token");
     const headers = {
-      ...options.headers,
+      ...(options.headers || {}),
     };
 
     if (token) {
       headers.Authorization = `Bearer ${token}`;
     }
 
-    const response = await fetch(`${this.baseUrl}${url}`, {
-      ...options,
-      headers,
-    });
+    let response;
+
+    try {
+      response = await fetch(`${this.baseUrl}${url}`, {
+        ...options,
+        headers,
+      });
+    } catch {
+      throw new Error("Сервер недоступен. Попробуйте позже.");
+    }
 
     let data;
     try {

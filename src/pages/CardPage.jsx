@@ -9,7 +9,6 @@ function CardPage() {
   return (
     <div className="wrapper">
       <Header />
-      <div style={{ display: "none" }}>Card ID: {id}</div>
       <PopBrowse id={id} />
     </div>
   );

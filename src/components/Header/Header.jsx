@@ -1,24 +1,33 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { useAuth } from "../../hooks/useAuth";
 import {
   HeaderContainer,
   HeaderBlock,
   Logo,
   Navigation,
-  CreateButton,
-  UserLink,
+  CreateTaskLink,
+  UserButton,
   UserMenu,
   UserName,
   UserEmail,
   ThemeSection,
-  LogoutButton,
+  LogoutLink,
 } from "./Header.styled";
 
 function Header() {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const { user } = useAuth();
 
-  const handleUserClick = () => {
-    setIsUserMenuOpen(!isUserMenuOpen);
+  const userName = user?.name?.trim() || user?.login || "Пользователь";
+  const userEmail = user?.login || user?.email || "";
+
+  const toggleUserMenu = () => {
+    setIsUserMenuOpen((prev) => !prev);
+  };
+
+  const closeUserMenu = () => {
+    setIsUserMenuOpen(false);
   };
 
   return (
@@ -26,35 +35,50 @@ function Header() {
       <div className="container">
         <HeaderBlock>
           <Logo className="_show _light">
-            <Link to="/">
-              <img src="/images/logo.png" alt="logo" />
+            <Link to="/" onClick={closeUserMenu}>
+              <img src="/images/logo.png" alt="Логотип Skypro" />
             </Link>
           </Logo>
           <Logo className="_dark">
-            <Link to="/">
-              <img src="/images/logo_dark.png" alt="logo" />
+            <Link to="/" onClick={closeUserMenu}>
+              <img
+                src="/images/logo_dark.png"
+                alt="Логотип Skypro (тёмная тема)"
+              />
             </Link>
           </Logo>
           <Navigation>
-            <CreateButton id="btnMainNew">
-              <Link to="/new-card">Создать новую задачу</Link>
-            </CreateButton>
-            <UserLink href="#user-set-target" onClick={handleUserClick}>
-              Ivan Ivanov
-            </UserLink>
-            <UserMenu
-              className={isUserMenuOpen ? "show" : ""}
-              id="user-set-target"
+            <CreateTaskLink
+              id="btnMainNew"
+              to="/new-card"
+              onClick={closeUserMenu}
             >
-              <UserName>Ivan Ivanov</UserName>
-              <UserEmail>ivan.ivanov@gmail.com</UserEmail>
+              Создать новую задачу
+            </CreateTaskLink>
+            <UserButton
+              type="button"
+              aria-haspopup="true"
+              aria-expanded={isUserMenuOpen}
+              onClick={toggleUserMenu}
+            >
+              {userName}
+            </UserButton>
+            <UserMenu className={isUserMenuOpen ? "show" : ""}>
+              <UserName>{userName}</UserName>
+              {userEmail ? <UserEmail>{userEmail}</UserEmail> : null}
               <ThemeSection>
                 <p>Темная тема</p>
-                <input type="checkbox" className="checkbox" name="checkbox" />
+                <input
+                  type="checkbox"
+                  className="checkbox"
+                  name="checkbox"
+                  disabled
+                  aria-disabled="true"
+                />
               </ThemeSection>
-              <LogoutButton type="button">
-                <Link to="/exit">Выйти</Link>
-              </LogoutButton>
+              <LogoutLink to="/exit" onClick={closeUserMenu}>
+                Выйти
+              </LogoutLink>
             </UserMenu>
           </Navigation>
         </HeaderBlock>
