@@ -4,6 +4,20 @@ import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { useTasks } from "../../../hooks/useTasks";
 
+const STATUS_OPTIONS = [
+  "Без статуса",
+  "Нужно сделать",
+  "В работе",
+  "Тестирование",
+  "Готово",
+];
+
+const TOPIC_OPTIONS = [
+  { value: "Web Design", colorClass: "_orange" },
+  { value: "Research", colorClass: "_green" },
+  { value: "Copywriting", colorClass: "_purple" },
+];
+
 function PopNewCard() {
   const navigate = useNavigate();
   const { addTask } = useTasks();
@@ -26,12 +40,26 @@ function PopNewCard() {
   const handleCreate = async (e) => {
     e.preventDefault();
     setError("");
-    if (!title.trim()) {
+    const trimmedTitle = title.trim();
+    const trimmedDescription = description.trim();
+
+    if (!trimmedTitle) {
       setError("Введите название задачи");
       return;
     }
+
+    if (!trimmedDescription) {
+      setError("Введите описание задачи");
+      return;
+    }
     setIsSubmitting(true);
-    const result = await addTask({ title, topic, status, description, date });
+    const result = await addTask({
+      title: trimmedTitle,
+      topic,
+      status,
+      description: trimmedDescription,
+      date,
+    });
     setIsSubmitting(false);
     if (result.success) {
       navigate("/");
@@ -40,20 +68,27 @@ function PopNewCard() {
     }
   };
 
+  const canSubmit = title.trim() && description.trim() && !isSubmitting;
+
   return (
     <div className="pop-new-card" id="popNewCard">
       <div className="pop-new-card__container">
         <div className="pop-new-card__block">
           <div className="pop-new-card__content">
             <h3 className="pop-new-card__ttl">Создание задачи</h3>
-            <a href="#" className="pop-new-card__close" onClick={handleClose}>
+            <button
+              type="button"
+              className="pop-new-card__close"
+              onClick={handleClose}
+              aria-label="Закрыть окно"
+            >
               &#10006;
-            </a>
+            </button>
             <div className="pop-new-card__wrap">
               <form
                 className="pop-new-card__form form-new"
                 id="formNewCard"
-                action="#"
+                onSubmit={handleCreate}
               >
                 <div className="form-new__block">
                   <label htmlFor="formTitle" className="subttl">
@@ -83,42 +118,41 @@ function PopNewCard() {
                     onChange={(e) => setDescription(e.target.value)}
                   ></textarea>
                 </div>
+                <div className="status">
+                  <p className="status__p subttl">Статус</p>
+                  <div className="status__themes">
+                    {STATUS_OPTIONS.map((option) => (
+                      <button
+                        key={option}
+                        type="button"
+                        className={`status__theme ${
+                          status === option ? "_gray" : ""
+                        }`}
+                        onClick={() => setStatus(option)}
+                      >
+                        {option}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </form>
               <Calendar onDateChange={setDate} selectedDate={date} />
             </div>
             <div className="pop-new-card__categories categories">
               <p className="categories__p subttl">Категория</p>
               <div className="categories__themes">
-                <div
-                  className={`categories__theme _orange ${
-                    topic === "Web Design" ? "_active-category" : ""
-                  }`}
-                  onClick={() => setTopic("Web Design")}
-                >
-                  <p className="_orange" style={{ cursor: "pointer" }}>
-                    Web Design
-                  </p>
-                </div>
-                <div
-                  className={`categories__theme _green ${
-                    topic === "Research" ? "_active-category" : ""
-                  }`}
-                  onClick={() => setTopic("Research")}
-                >
-                  <p className="_green" style={{ cursor: "pointer" }}>
-                    Research
-                  </p>
-                </div>
-                <div
-                  className={`categories__theme _purple ${
-                    topic === "Copywriting" ? "_active-category" : ""
-                  }`}
-                  onClick={() => setTopic("Copywriting")}
-                >
-                  <p className="_purple" style={{ cursor: "pointer" }}>
-                    Copywriting
-                  </p>
-                </div>
+                {TOPIC_OPTIONS.map((option) => (
+                  <button
+                    key={option.value}
+                    type="button"
+                    className={`categories__theme ${option.colorClass} ${
+                      topic === option.value ? "_active-category" : ""
+                    }`}
+                    onClick={() => setTopic(option.value)}
+                  >
+                    <span className={option.colorClass}>{option.value}</span>
+                  </button>
+                ))}
               </div>
             </div>
             {error ? (
@@ -127,8 +161,9 @@ function PopNewCard() {
             <button
               className="form-new__create _hover01"
               id="btnCreate"
-              onClick={handleCreate}
-              disabled={isSubmitting}
+              type="submit"
+              form="formNewCard"
+              disabled={!canSubmit}
             >
               {isSubmitting ? "Создание..." : "Создать задачу"}
             </button>

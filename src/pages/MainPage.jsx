@@ -1,5 +1,6 @@
 import Column from "../components/Column/Column";
 import Header from "../components/Header/Header";
+import Loader from "../components/Loader/Loader";
 import { useTasks } from "../hooks/useTasks";
 import {
   Wrapper,
@@ -7,27 +8,25 @@ import {
   MainBlock,
   MainContent,
   LoadingContainer,
+  EmptyState,
+  RetryButton,
 } from "./MainPage.styled";
 
+const COLUMN_ORDER = [
+  "БЕЗ СТАТУСА",
+  "НУЖНО СДЕЛАТЬ",
+  "В РАБОТЕ",
+  "ТЕСТИРОВАНИЕ",
+  "ГОТОВО",
+];
+
 function MainPage() {
-  const { tasks, isLoading, error } = useTasks();
-  const cards = tasks;
+  const { tasks, isLoading, error, loadTasks } = useTasks();
 
-  const groupedCards = {
-    "БЕЗ СТАТУСА": cards.filter((card) => card.status === "БЕЗ СТАТУСА"),
-    "НУЖНО СДЕЛАТЬ": cards.filter((card) => card.status === "НУЖНО СДЕЛАТЬ"),
-    "В РАБОТЕ": cards.filter((card) => card.status === "В РАБОТЕ"),
-    ТЕСТИРОВАНИЕ: cards.filter((card) => card.status === "ТЕСТИРОВАНИЕ"),
-    ГОТОВО: cards.filter((card) => card.status === "ГОТОВО"),
-  };
-
-  const columns = [
-    { title: "БЕЗ СТАТУСА", cards: groupedCards["БЕЗ СТАТУСА"] },
-    { title: "НУЖНО СДЕЛАТЬ", cards: groupedCards["НУЖНО СДЕЛАТЬ"] },
-    { title: "В РАБОТЕ", cards: groupedCards["В РАБОТЕ"] },
-    { title: "ТЕСТИРОВАНИЕ", cards: groupedCards["ТЕСТИРОВАНИЕ"] },
-    { title: "ГОТОВО", cards: groupedCards["ГОТОВО"] },
-  ];
+  const columns = COLUMN_ORDER.map((title) => ({
+    title,
+    cards: tasks.filter((card) => card.status === title),
+  }));
 
   if (isLoading) {
     return (
@@ -37,7 +36,7 @@ function MainPage() {
           <div className="container">
             <MainBlock>
               <LoadingContainer>
-                <p>Данные загружаются</p>
+                <Loader label="Загружаем задачи" />
               </LoadingContainer>
             </MainBlock>
           </div>
@@ -54,7 +53,10 @@ function MainPage() {
           <div className="container">
             <MainBlock>
               <LoadingContainer>
-                <p style={{ color: "red" }}>{error}</p>
+                <p role="alert">{error}</p>
+                <RetryButton type="button" onClick={loadTasks}>
+                  Попробовать снова
+                </RetryButton>
               </LoadingContainer>
             </MainBlock>
           </div>
@@ -63,15 +65,23 @@ function MainPage() {
     );
   }
 
+  const isEmpty = tasks.length === 0;
+
   return (
     <Wrapper>
       <Header />
       <MainContainer>
         <div className="container">
           <MainBlock>
-            <MainContent>
-              {columns.map((column, index) => (
-                <Column key={index} title={column.title} cards={column.cards} />
+            {isEmpty ? (
+              <EmptyState>
+                <p>Новых задач нет</p>
+                <span>Нажмите «Создать новую задачу», чтобы начать работу.</span>
+              </EmptyState>
+            ) : null}
+            <MainContent $isEmpty={isEmpty}>
+              {columns.map((column) => (
+                <Column key={column.title} title={column.title} cards={column.cards} />
               ))}
             </MainContent>
           </MainBlock>

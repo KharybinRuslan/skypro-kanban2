@@ -3,6 +3,28 @@ import { registerUser, loginUser } from "../services/userApi";
 
 const AuthContext = createContext(null);
 
+const readUserFromStorage = () => {
+  const storedUser = localStorage.getItem("user");
+  if (!storedUser) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(storedUser);
+  } catch {
+    localStorage.removeItem("user");
+    return null;
+  }
+};
+
+const persistUserToStorage = (userData) => {
+  try {
+    localStorage.setItem("user", JSON.stringify(userData));
+  } catch {
+    // Если localStorage переполнен, просто пропускаем сохранение.
+  }
+};
+
 export const AuthProvider = ({ children }) => {
   const [isAuth, setIsAuth] = useState(false);
   const [user, setUser] = useState(null);
@@ -10,31 +32,40 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    if (token) {
-      setIsAuth(true);
+    const storedUser = readUserFromStorage();
+
+    if (storedUser) {
+      setUser(storedUser);
     }
+
+    setIsAuth(Boolean(token));
     setIsLoading(false);
   }, []);
 
-  const login = async (login, password) => {
-    try {
-      const userData = await loginUser(login, password);
+  const handleAuthSuccess = (userData) => {
+    if (userData?.token) {
       localStorage.setItem("token", userData.token);
-      setUser(userData);
-      setIsAuth(true);
-      return { success: true };
+    }
+
+    persistUserToStorage(userData);
+    setUser(userData);
+    setIsAuth(true);
+    return { success: true };
+  };
+
+  const login = async (loginValue, password) => {
+    try {
+      const userData = await loginUser(loginValue, password);
+      return handleAuthSuccess(userData);
     } catch (error) {
       return { success: false, error: error.message };
     }
   };
 
-  const register = async (login, name, password) => {
+  const register = async (loginValue, name, password) => {
     try {
-      const userData = await registerUser(login, name, password);
-      localStorage.setItem("token", userData.token);
-      setUser(userData);
-      setIsAuth(true);
-      return { success: true };
+      const userData = await registerUser(loginValue, name, password);
+      return handleAuthSuccess(userData);
     } catch (error) {
       return { success: false, error: error.message };
     }
@@ -42,6 +73,7 @@ export const AuthProvider = ({ children }) => {
 
   const logout = () => {
     localStorage.removeItem("token");
+    localStorage.removeItem("user");
     setUser(null);
     setIsAuth(false);
   };

@@ -1,9 +1,35 @@
 import "./PopBrowse.css";
 import Calendar from "../../Calendar/Calendar";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { getTaskById } from "../../../services/kanbanApi";
 import { useTasks } from "../../../hooks/useTasks";
+import Loader from "../../Loader/Loader";
+
+const STATUS_OPTIONS = [
+  "Без статуса",
+  "Нужно сделать",
+  "В работе",
+  "Тестирование",
+  "Готово",
+];
+
+const TOPIC_OPTIONS = [
+  { value: "Web Design", colorClass: "_orange" },
+  { value: "Research", colorClass: "_green" },
+  { value: "Copywriting", colorClass: "_purple" },
+];
+
+const getNormalizedStatus = (value) => {
+  if (!value) {
+    return STATUS_OPTIONS[0];
+  }
+
+  const match = STATUS_OPTIONS.find(
+    (option) => option.toLowerCase() === value.toLowerCase(),
+  );
+  return match || STATUS_OPTIONS[0];
+};
 
 function PopBrowse({ id }) {
   const navigate = useNavigate();
@@ -17,27 +43,39 @@ function PopBrowse({ id }) {
   const [isEdit, setIsEdit] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
-    (async () => {
+
+    const fetchTask = async () => {
       setLoading(true);
       setError("");
       try {
         const task = await getTaskById(id);
-        if (!isMounted) return;
-        setTitle(task.title || "");
-        setDescription(task.description || "");
-        setTopic(task.topic || "Research");
-        setStatus(task.status || "Без статуса");
-        setDate(task.date || new Date().toISOString());
+        if (!isMounted) {
+          return;
+        }
+        setTitle(task?.title || "");
+        setDescription(task?.description || "");
+        setTopic(task?.topic || "Research");
+        setStatus(getNormalizedStatus(task?.status));
+        setDate(task?.date || new Date().toISOString());
       } catch (e) {
-        if (!isMounted) return;
+        if (!isMounted) {
+          return;
+        }
         setError(e.message || "Ошибка загрузки задачи");
       } finally {
-        if (isMounted) setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
-    })();
+    };
+
+    fetchTask();
+
     return () => {
       isMounted = false;
     };
@@ -46,7 +84,30 @@ function PopBrowse({ id }) {
   const handleSave = async (e) => {
     e.preventDefault();
     setError("");
-    const result = await updateTaskById(id, { title, description, topic, status, date });
+
+    const trimmedTitle = title.trim();
+    const trimmedDescription = description.trim();
+
+    if (!trimmedTitle) {
+      setError("Введите название задачи");
+      return;
+    }
+
+    if (!trimmedDescription) {
+      setError("Введите описание задачи");
+      return;
+    }
+
+    setIsSaving(true);
+    const result = await updateTaskById(id, {
+      title: trimmedTitle,
+      description: trimmedDescription,
+      topic,
+      status,
+      date,
+    });
+    setIsSaving(false);
+
     if (result.success) {
       setIsEdit(false);
       navigate("/");
@@ -58,7 +119,9 @@ function PopBrowse({ id }) {
   const handleDelete = async (e) => {
     e.preventDefault();
     setError("");
+    setIsDeleting(true);
     const result = await removeTask(id);
+    setIsDeleting(false);
     if (result.success) {
       navigate("/");
     } else {
@@ -73,233 +136,201 @@ function PopBrowse({ id }) {
     navigate("/");
   };
 
+  const isActionDisabled = isSaving || isDeleting;
+  const canSave =
+    isEdit && title.trim() && description.trim() && !isSaving && !loading;
+
+  const topicClassName = useMemo(() => {
+    const match = TOPIC_OPTIONS.find((option) => option.value === topic);
+    return match ? match.colorClass : "_orange";
+  }, [topic]);
+
   return (
     <div className="pop-browse" id="popBrowse">
       <div className="pop-browse__container">
         <div className="pop-browse__block">
           <div className="pop-browse__content">
-            <div className="pop-browse__top-block">
-              {isEdit ? (
-                <input
-                  type="text"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  style={{
-                    fontSize: "20px",
-                    fontWeight: 600,
-                    border: "1px solid #d4dbe5",
-                    borderRadius: "8px",
-                    padding: "8px",
-                    width: "100%",
-                    marginBottom: "10px",
-                  }}
-                  placeholder="Название задачи"
-                />
-              ) : (
-                <h3 className="pop-browse__ttl">
-                  {loading ? "Загрузка..." : title || "Без названия"}
-                </h3>
-              )}
-              <div
-                className={`categories__theme theme-top ${
-                  topic === "Web Design"
-                    ? "_orange _active-category"
-                    : topic === "Research"
-                    ? "_green _active-category"
-                    : topic === "Copywriting"
-                    ? "_purple _active-category"
-                    : "_orange"
-                }`}
-                onClick={() => {
-                  if (isEdit) {
-                    if (topic === "Web Design") setTopic("Research");
-                    else if (topic === "Research") setTopic("Copywriting");
-                    else setTopic("Web Design");
-                  }
-                }}
-                style={{ cursor: isEdit ? "pointer" : "default" }}
-              >
-                <p
-                  className={
-                    topic === "Web Design"
-                      ? "_orange"
-                      : topic === "Research"
-                      ? "_green"
-                      : "_purple"
-                  }
-                  style={{ cursor: "pointer" }}
-                >
-                  {topic}
-                </p>
+            {loading ? (
+              <div className="pop-browse__loader">
+                <Loader label="Загружаем задачу" />
               </div>
-            </div>
-            <div className="pop-browse__status status">
-              <p className="status__p subttl">Статус</p>
-              <div className="status__themes">
-                <div
-                  className={`status__theme ${
-                    status === "Без статуса" ? "_gray" : ""
-                  }`}
-                  onClick={() => isEdit && setStatus("Без статуса")}
-                  style={{ cursor: isEdit ? "pointer" : "default" }}
-                >
-                  <p>Без статуса</p>
+            ) : (
+              <>
+                <div className="pop-browse__top-block">
+                  {isEdit ? (
+                    <input
+                      type="text"
+                      value={title}
+                      onChange={(e) => setTitle(e.target.value)}
+                      className="pop-browse__title-input"
+                      placeholder="Название задачи"
+                      autoFocus
+                    />
+                  ) : (
+                    <h3 className="pop-browse__ttl">
+                      {title || "Без названия"}
+                    </h3>
+                  )}
+                  <button
+                    type="button"
+                    className={`categories__theme theme-top ${topicClassName} ${
+                      isEdit ? "_active-category" : ""
+                    }`}
+                    onClick={() => {
+                      if (!isEdit) {
+                        return;
+                      }
+                      const currentIndex = TOPIC_OPTIONS.findIndex(
+                        (option) => option.value === topic,
+                      );
+                      const nextIndex =
+                        (currentIndex + 1) % TOPIC_OPTIONS.length;
+                      setTopic(TOPIC_OPTIONS[nextIndex].value);
+                    }}
+                    disabled={!isEdit}
+                  >
+                    <span className={topicClassName}>{topic}</span>
+                  </button>
                 </div>
-                <div
-                  className={`status__theme ${
-                    status === "Нужно сделать" ? "_gray" : ""
-                  }`}
-                  onClick={() => isEdit && setStatus("Нужно сделать")}
-                  style={{ cursor: isEdit ? "pointer" : "default" }}
-                >
-                  <p className={status === "Нужно сделать" ? "_gray" : ""}>
-                    Нужно сделать
-                  </p>
+                <div className="pop-browse__status status">
+                  <p className="status__p subttl">Статус</p>
+                  <div className="status__themes">
+                    {STATUS_OPTIONS.map((option) => (
+                      <button
+                        key={option}
+                        type="button"
+                        className={`status__theme ${
+                          status === option ? "_gray" : ""
+                        }`}
+                        onClick={() => isEdit && setStatus(option)}
+                        disabled={!isEdit}
+                      >
+                        {option}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-                <div
-                  className={`status__theme ${
-                    status === "В работе" ? "_gray" : ""
-                  }`}
-                  onClick={() => isEdit && setStatus("В работе")}
-                  style={{ cursor: isEdit ? "pointer" : "default" }}
-                >
-                  <p>В работе</p>
+                <div className="pop-browse__wrap">
+                  <form
+                    className="pop-browse__form form-browse"
+                    id="formBrowseCard"
+                    onSubmit={handleSave}
+                  >
+                    <div className="form-browse__block">
+                      <label htmlFor="textArea01" className="subttl">
+                        Описание задачи
+                      </label>
+                      <textarea
+                        className="form-browse__area"
+                        name="text"
+                        id="textArea01"
+                        readOnly={!isEdit}
+                        placeholder="Введите описание задачи..."
+                        value={description}
+                        onChange={(e) => setDescription(e.target.value)}
+                      ></textarea>
+                    </div>
+                  </form>
+                  <Calendar
+                    onDateChange={(selectedDate) =>
+                      isEdit && setDate(selectedDate)
+                    }
+                    selectedDate={date}
+                  />
                 </div>
-                <div
-                  className={`status__theme ${
-                    status === "Тестирование" ? "_gray" : ""
-                  }`}
-                  onClick={() => isEdit && setStatus("Тестирование")}
-                  style={{ cursor: isEdit ? "pointer" : "default" }}
-                >
-                  <p>Тестирование</p>
+                <div className="theme-down__categories theme-down">
+                  <p className="categories__p subttl">Категория</p>
+                  <div className="categories__themes">
+                    {TOPIC_OPTIONS.map((option) => (
+                      <button
+                        key={option.value}
+                        type="button"
+                        className={`categories__theme ${option.colorClass} ${
+                          topic === option.value ? "_active-category" : ""
+                        }`}
+                        onClick={() => isEdit && setTopic(option.value)}
+                        disabled={!isEdit}
+                      >
+                        <span className={option.colorClass}>
+                          {option.value}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
                 </div>
-                <div
-                  className={`status__theme ${
-                    status === "Готово" ? "_gray" : ""
-                  }`}
-                  onClick={() => isEdit && setStatus("Готово")}
-                  style={{ cursor: isEdit ? "pointer" : "default" }}
-                >
-                  <p>Готово</p>
-                </div>
-              </div>
-            </div>
-            <div className="pop-browse__wrap">
-              <form
-                className="pop-browse__form form-browse"
-                id="formBrowseCard"
-                action="#"
-              >
-                <div className="form-browse__block">
-                  <label htmlFor="textArea01" className="subttl">
-                    Описание задачи
-                  </label>
-                  <textarea
-                    className="form-browse__area"
-                    name="text"
-                    id="textArea01"
-                    readOnly={!isEdit}
-                    placeholder="Введите описание задачи..."
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                  ></textarea>
-                </div>
-              </form>
-              <Calendar onDateChange={setDate} selectedDate={date} />
-            </div>
-            <div className="theme-down__categories theme-down">
-              <p className="categories__p subttl">Категория</p>
-              <div className="categories__themes">
-                <div
-                  className={`categories__theme _orange ${
-                    topic === "Web Design" ? "_active-category" : ""
-                  }`}
-                  onClick={() => isEdit && setTopic("Web Design")}
-                  style={{ cursor: isEdit ? "pointer" : "default" }}
-                >
-                  <p className="_orange" style={{ cursor: "pointer" }}>
-                    Web Design
-                  </p>
-                </div>
-                <div
-                  className={`categories__theme _green ${
-                    topic === "Research" ? "_active-category" : ""
-                  }`}
-                  onClick={() => isEdit && setTopic("Research")}
-                  style={{ cursor: isEdit ? "pointer" : "default" }}
-                >
-                  <p className="_green" style={{ cursor: "pointer" }}>
-                    Research
-                  </p>
-                </div>
-                <div
-                  className={`categories__theme _purple ${
-                    topic === "Copywriting" ? "_active-category" : ""
-                  }`}
-                  onClick={() => isEdit && setTopic("Copywriting")}
-                  style={{ cursor: isEdit ? "pointer" : "default" }}
-                >
-                  <p className="_purple" style={{ cursor: "pointer" }}>
-                    Copywriting
-                  </p>
-                </div>
-              </div>
-            </div>
-            {error ? (
-              <p style={{ color: "red", marginBottom: 12 }}>{error}</p>
-            ) : null}
+                {error ? (
+                  <p style={{ color: "red", marginBottom: 12 }}>{error}</p>
+                ) : null}
+              </>
+            )}
             <div
-              className={`pop-browse__btn-browse ${isEdit ? "_hide" : ""}`}
+              className={`pop-browse__btn-browse ${
+                isEdit || loading ? "_hide" : ""
+              }`}
             >
               <div className="btn-group">
                 <button
+                  type="button"
                   className="btn-browse__edit _btn-bor _hover03"
                   onClick={() => setIsEdit(true)}
                 >
-                  <a href="#">Редактировать задачу</a>
+                  Редактировать задачу
                 </button>
                 <button
+                  type="button"
                   className="btn-browse__delete _btn-bor _hover03"
                   onClick={handleDelete}
+                  disabled={isActionDisabled}
                 >
-                  <a href="#">Удалить задачу</a>
+                  {isDeleting ? "Удаление..." : "Удалить задачу"}
                 </button>
               </div>
               <button
+                type="button"
                 className="btn-browse__close _btn-bg _hover01"
                 onClick={handleClose}
               >
-                <a href="#">Закрыть</a>
+                Закрыть
               </button>
             </div>
-            <div className={`pop-browse__btn-edit ${!isEdit ? "_hide" : ""}`}>
+            <div
+              className={`pop-browse__btn-edit ${
+                !isEdit || loading ? "_hide" : ""
+              }`}
+            >
               <div className="btn-group">
                 <button
+                  type="submit"
                   className="btn-edit__edit _btn-bg _hover01"
-                  onClick={handleSave}
+                  form="formBrowseCard"
+                  disabled={!canSave}
                 >
-                  <a href="#">Сохранить</a>
+                  {isSaving ? "Сохранение..." : "Сохранить"}
                 </button>
                 <button
+                  type="button"
                   className="btn-edit__edit _btn-bor _hover03"
                   onClick={() => setIsEdit(false)}
+                  disabled={isSaving}
                 >
-                  <a href="#">Отменить</a>
+                  Отменить
                 </button>
                 <button
+                  type="button"
                   className="btn-edit__delete _btn-bor _hover03"
                   id="btnDelete"
                   onClick={handleDelete}
+                  disabled={isActionDisabled}
                 >
-                  <a href="#">Удалить задачу</a>
+                  {isDeleting ? "Удаление..." : "Удалить задачу"}
                 </button>
               </div>
               <button
+                type="button"
                 className="btn-edit__close _btn-bg _hover01"
                 onClick={handleClose}
               >
-                <a href="#">Закрыть</a>
+                Закрыть
               </button>
             </div>
           </div>
@@ -310,3 +341,4 @@ function PopBrowse({ id }) {
 }
 
 export default PopBrowse;
+

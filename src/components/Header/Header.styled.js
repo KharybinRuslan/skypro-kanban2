@@ -1,4 +1,5 @@
 import styled from "styled-components";
+import { Link } from "react-router-dom";
 import { colors } from "../../styles/themes";
 
 export const HeaderContainer = styled.header`
@@ -38,32 +39,31 @@ export const Navigation = styled.nav`
   justify-content: center;
 `;
 
-export const CreateButton = styled.button`
+export const CreateTaskLink = styled(Link)`
   width: 178px;
   height: 30px;
   border-radius: 4px;
   background-color: ${colors.primary};
   color: ${colors.white};
-  border: none;
   font-size: 14px;
   line-height: 1;
   font-weight: 500;
   margin-right: 20px;
   cursor: pointer;
   transition: background-color 0.3s ease;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
 
   &:hover {
     background-color: ${colors.primaryHover};
   }
 
-  a {
-    color: ${colors.white};
-    text-decoration: none;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    height: 100%;
+  &:focus-visible {
+    outline: 2px solid ${colors.primaryHover};
+    outline-offset: 2px;
   }
 
   @media screen and (max-width: 495px) {
@@ -79,7 +79,7 @@ export const CreateButton = styled.button`
   }
 `;
 
-export const UserLink = styled.a`
+export const UserButton = styled.button`
   height: 20px;
   display: flex;
   flex-wrap: nowrap;
@@ -90,6 +90,9 @@ export const UserLink = styled.a`
   color: ${colors.primary};
   cursor: pointer;
   transition: color 0.3s ease;
+  background: transparent;
+  border: none;
+  padding: 0;
 
   &:hover {
     color: ${colors.primaryHover};
@@ -112,6 +115,11 @@ export const UserLink = styled.a`
   &:hover::after {
     border-left-color: ${colors.primaryHover};
     border-bottom-color: ${colors.primaryHover};
+  }
+
+  &:focus-visible {
+    outline: 2px solid ${colors.primaryHover};
+    outline-offset: 2px;
   }
 `;
 
@@ -175,7 +183,7 @@ export const ThemeSection = styled.div`
     -webkit-appearance: none;
     -moz-appearance: none;
     appearance: none;
-    cursor: pointer;
+    cursor: not-allowed;
 
     &::before {
       content: "";
@@ -195,7 +203,7 @@ export const ThemeSection = styled.div`
   }
 `;
 
-export const LogoutButton = styled.button`
+export const LogoutLink = styled(Link)`
   width: 72px;
   height: 30px;
   background: transparent;
@@ -204,19 +212,19 @@ export const LogoutButton = styled.button`
   border: 1px solid ${colors.primary};
   cursor: pointer;
   transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
 
   &:hover {
     background-color: ${colors.primaryHover};
     color: ${colors.white};
   }
 
-  a {
-    color: inherit;
-    text-decoration: none;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    height: 100%;
+  &:focus-visible {
+    outline: 2px solid ${colors.primaryHover};
+    outline-offset: 2px;
   }
 `;
+
